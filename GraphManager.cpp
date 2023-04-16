@@ -12,11 +12,22 @@ namespace graphic_utils {
 	* процессорных инструкций
 	*/
 
-	GraphManager::GraphManager() {
+	/*
+	double GraphManager::getMatrixK() {
+		
+	}
+	double GraphManager::setMatrixK() {
+		
+	}
+	*/
+
+	GraphManager::GraphManager():interval_start(-5), interval_finish(5), step(0.001) {
 		InitializeCriticalSection(&(this->drawCritSection));
 		InitializeCriticalSection(&(this->funcCritSection));
 		InitializeCriticalSection(&(this->pointsCritSection));
 		InitializeCriticalSection(&(this->namesCritSection));
+		//InitializeCriticalSection(&(this->kCritSection));
+		//this->matrix_k = 1;
 	}
 	GraphManager::~GraphManager() {
 		DeleteCriticalSection(&(this->drawCritSection));
@@ -25,20 +36,55 @@ namespace graphic_utils {
 		DeleteCriticalSection(&(this->namesCritSection));
 	}
 
-	static void drawAxis(HDC hdc, RECT rect) {
-		double x_start = 0.5 * (rect.right - rect.left);
-		double y_start = 0.2 * (rect.bottom - rect.top);
+	static void rotateAxesFromGraph(double& x, double& y) {
+		double buf = x;
+		x = y;
+		y = buf;
+	}
+
+	static void rotateAxesToGraph(double& x, double& y) {
+		double buf = x;
+		x = y;
+		y = buf;
+	}
+
+	static double getRectWidth(RECT& rect) {
+		return rect.right - rect.left;
+	}
+
+	static double getRectHeight(RECT& rect) {
+		return rect.bottom - rect.top;
+	}
+
+	static double getAxisSize(RECT& rect) {
+		return (rect.right >= rect.bottom) ? rect.right : rect.bottom;
+	}
+
+	static void drawFunction(HDC hdc, RECT& rect, func function) {
+		double width = getRectWidth(rect);
+		double height = getRectHeight(rect);
+		double x_start = 0.8 * height;
+		double y_start = 0.2 * width;
+		POINT pt;
+		HPEN pen = CreatePen(PS_SOLID, 2, RGB(100, 0, 0));
+		SelectObject(hdc, pen);
+		MoveToEx(hdc, 0, 0, &pt);
+	}
+
+	static void drawAxes(HDC hdc, RECT& rect) {
+		double width = getRectWidth(rect);
+		double height = getRectHeight(rect);
+		double x_start = 0.5*0.8*height;
+		double y_start = 0.5*0.2*width;
+		rotateAxesFromGraph(x_start, y_start);
 		POINT pt;
 		HPEN pen = CreatePen(PS_SOLID, 2, RGB(200, 200, 200));
 		SelectObject(hdc, pen);
-		int size = rect.right;
-		if (rect.bottom >= rect.right) {
-			size = rect.bottom;
-		}
-		MoveToEx(hdc, y_start, 0, &pt);
-		LineTo(hdc, y_start, size);
-		MoveToEx(hdc, 0, x_start, &pt);
-		LineTo(hdc, size, x_start);
+		int size = getAxisSize(rect);
+		MoveToEx(hdc, x_start, 0, &pt);
+		LineTo(hdc, x_start, size);
+		MoveToEx(hdc, 0, y_start, &pt);
+		LineTo(hdc, size, y_start);
 		DeleteObject(pen);
 	}
 
@@ -50,7 +96,7 @@ namespace graphic_utils {
 		EnterCriticalSection(&(this->drawCritSection));
 		hdc = BeginPaint(hwnd, &ps);
 		GetClientRect(hwnd, &rect);
-		drawAxis(hdc, rect);
+		drawAxes(hdc, rect);
 		/*
 		int width = rect.right - rect.left;
 		int height = rect.top - rect.bottom;

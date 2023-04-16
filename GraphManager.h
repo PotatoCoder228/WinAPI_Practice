@@ -16,10 +16,17 @@ namespace graphic_utils {
 		void setFunctions(std::vector<func> functions);
 		void setGraphNames(std::vector<std::wstring> graphNames);
 		void setPoints(std::vector<point2D> points);
+		//double getMatrixK();
+		//double setMatrixK();
 	private:
+		//volatile static double matrix_k;
 		std::vector<func> functions;
 		std::vector<point2D> points;
 		std::vector<std::wstring> graphNames;
+		volatile double step;
+		volatile double interval_start;
+		volatile double interval_finish;
+		//CRITICAL_SECTION kCritSection;
 		CRITICAL_SECTION drawCritSection;
 		CRITICAL_SECTION funcCritSection;
 		CRITICAL_SECTION namesCritSection;
